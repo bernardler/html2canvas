@@ -1,15 +1,15 @@
 /* @flow */
 'use strict';
-import type {Bounds} from './Bounds';
-import type {Options} from './index';
-import type {PseudoContentData, PseudoContentItem} from './PseudoNodeContent';
+import type { Bounds } from './Bounds';
+import type { Options } from './index';
+import type { PseudoContentData, PseudoContentItem } from './PseudoNodeContent';
 import type Logger from './Logger';
 
-import {parseBounds} from './Bounds';
-import {Proxy} from './Proxy';
+import { parseBounds } from './Bounds';
+import { Proxy } from './Proxy';
 import ResourceLoader from './ResourceLoader';
-import {copyCSSStyles} from './Util';
-import {parseBackgroundImage} from './parsing/background';
+import { copyCSSStyles } from './Util';
+import { parseBackgroundImage } from './parsing/background';
 import CanvasRenderer from './renderer/CanvasRenderer';
 import {
     parseCounterReset,
@@ -177,7 +177,7 @@ export class DocumentCloner {
             const iframeKey = generateIframeKey();
             tempIframe.setAttribute('data-html2canvas-internal-iframe-key', iframeKey);
 
-            const {width, height} = parseBounds(node, 0, 0);
+            const { width, height } = parseBounds(node, 0, 0);
 
             this.resourceLoader.cache[iframeKey] = getIframeDocumentElement(node, this.options)
                 .then(documentElement => {
@@ -212,7 +212,7 @@ export class DocumentCloner {
                         new Promise((resolve, reject) => {
                             const iframeCanvas = document.createElement('img');
                             iframeCanvas.onload = () => resolve(canvas);
-                            iframeCanvas.onerror = function(event) {
+                            iframeCanvas.onerror = function (event) {
                                 // Empty iframes may result in empty "data:," URLs, which are invalid from the <img>'s point of view
                                 // and instead of `onload` cause `onerror` and unhandled rejection warnings
                                 // https://github.com/niklasvh/html2canvas/issues/1502
@@ -236,7 +236,7 @@ export class DocumentCloner {
         try {
             if (node instanceof HTMLStyleElement && node.sheet && node.sheet.cssRules) {
                 const css = [].slice.call(node.sheet.cssRules, 0).reduce((css, rule) => {
-                    if (rule && rule.cssText) {
+                    if (rule && typeof rule.cssText === 'string') {
                         return css + rule.cssText;
                     }
                     return css;
@@ -417,7 +417,7 @@ const cloneCanvasContents = (canvas: HTMLCanvasElement, clonedCanvas: HTMLCanvas
                 clonedCtx.drawImage(canvas, 0, 0);
             }
         }
-    } catch (e) {}
+    } catch (e) { }
 };
 
 const inlinePseudoElement = (
@@ -518,34 +518,34 @@ const getIframeDocumentElement = (
     } catch (e) {
         return options.proxy
             ? Proxy(node.src, options)
-                  .then(html => {
-                      const match = html.match(DATA_URI_REGEXP);
-                      if (!match) {
-                          return Promise.reject();
-                      }
+                .then(html => {
+                    const match = html.match(DATA_URI_REGEXP);
+                    if (!match) {
+                        return Promise.reject();
+                    }
 
-                      return match[2] === 'base64'
-                          ? window.atob(decodeURIComponent(match[3]))
-                          : decodeURIComponent(match[3]);
-                  })
-                  .then(html =>
-                      createIframeContainer(
-                          node.ownerDocument,
-                          parseBounds(node, 0, 0)
-                      ).then(cloneIframeContainer => {
-                          const cloneWindow = cloneIframeContainer.contentWindow;
-                          const documentClone = cloneWindow.document;
+                    return match[2] === 'base64'
+                        ? window.atob(decodeURIComponent(match[3]))
+                        : decodeURIComponent(match[3]);
+                })
+                .then(html =>
+                    createIframeContainer(
+                        node.ownerDocument,
+                        parseBounds(node, 0, 0)
+                    ).then(cloneIframeContainer => {
+                        const cloneWindow = cloneIframeContainer.contentWindow;
+                        const documentClone = cloneWindow.document;
 
-                          documentClone.open();
-                          documentClone.write(html);
-                          const iframeLoad = iframeLoader(cloneIframeContainer).then(
-                              () => documentClone.documentElement
-                          );
+                        documentClone.open();
+                        documentClone.write(html);
+                        const iframeLoad = iframeLoader(cloneIframeContainer).then(
+                            () => documentClone.documentElement
+                        );
 
-                          documentClone.close();
-                          return iframeLoad;
-                      })
-                  )
+                        documentClone.close();
+                        return iframeLoad;
+                    })
+                )
             : Promise.reject();
     }
 };
@@ -637,16 +637,16 @@ export const cloneWindow = (
             const onclone = options.onclone;
 
             return cloner.clonedReferenceElement instanceof cloneWindow.HTMLElement ||
-            cloner.clonedReferenceElement instanceof ownerDocument.defaultView.HTMLElement ||
-            cloner.clonedReferenceElement instanceof HTMLElement
+                cloner.clonedReferenceElement instanceof ownerDocument.defaultView.HTMLElement ||
+                cloner.clonedReferenceElement instanceof HTMLElement
                 ? typeof onclone === 'function'
-                  ? Promise.resolve().then(() => onclone(documentClone)).then(() => result)
-                  : result
+                    ? Promise.resolve().then(() => onclone(documentClone)).then(() => result)
+                    : result
                 : Promise.reject(
-                      __DEV__
-                          ? `Error finding the ${referenceElement.nodeName} in the cloned document`
-                          : ''
-                  );
+                    __DEV__
+                        ? `Error finding the ${referenceElement.nodeName} in the cloned document`
+                        : ''
+                );
         });
 
         documentClone.open();
